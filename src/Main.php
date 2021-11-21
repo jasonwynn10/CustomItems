@@ -3,15 +3,14 @@ declare(strict_types=1);
 namespace jasonwynn10\customitems;
 
 use pocketmine\block\BlockFactory;
-use pocketmine\block\VanillaBlocks;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\Item;
 use pocketmine\item\ItemBlock;
 use pocketmine\item\ItemIdentifier;
 use pocketmine\item\StringToItemParser;
 use pocketmine\nbt\LittleEndianNbtSerializer;
-use pocketmine\nbt\NbtSerializerTest;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\TreeRoot;
 use pocketmine\player\Player;
@@ -28,9 +27,14 @@ class Main extends PluginBase {
 		$this->dataStore->enableJsonOption(JSON_PRETTY_PRINT);
 		foreach($this->dataStore->getAll() as $name => $data) {
 			try{
-				$item = $data[2] ? new Item(new ItemIdentifier($data[0], $data[1]), $name) : new ItemBlock(new ItemIdentifier($data[0], $data[1]), BlockFactory::getInstance()->get($data[7], $data[8]));
+				$item = $data[2] ?
+					new Item(new ItemIdentifier($data[0], $data[1]), $name) :
+					new ItemBlock(new ItemIdentifier($data[0], $data[1]), BlockFactory::getInstance()->get($data[7], $data[8]));
+				foreach($data[3] as $enchantmentClass => $enchantmentLevel) {
+					$item->addEnchantment(new EnchantmentInstance(new $enchantmentClass(), $enchantmentLevel));
+				}
 				/** @var CompoundTag $customDataTag */
-				$customDataTag = (new LittleEndianNbtSerializer())->read($data[3])->getTag();
+				$customDataTag = (new LittleEndianNbtSerializer())->read($data[4])->getTag();
 				$item->setLore($data[2])->setCustomBlockData($customDataTag)->setCanPlaceOn($data[4]);
 				$item->setCanDestroy($data[5]);
 				StringToItemParser::getInstance()->register(TextFormat::clean($item->getName()), fn() => $item);
@@ -50,9 +54,12 @@ class Main extends PluginBase {
 		$item = $sender->getInventory()->getItemInHand();
 		StringToItemParser::getInstance()->register(TextFormat::clean($item->getName()), fn() => $item);
 
-		$this->dataStore->set($item->getName(), [$item->getId(), $item->getMeta(), $item->getLore(), $item->getEnchantments(), (new LittleEndianNbtSerializer())->write(new TreeRoot($item->getCustomBlockData())), $item->getCanPlaceOn(), $item->getCanDestroy(), $item->getBlock()->getId(), $item->getBlock()->getMeta()]);
+		$enchantments = [];
+		foreach($item->getEnchantments() as $enchantment) {
+			$enchantments[get_class($enchantment->getType())] = $enchantment->getLevel();
+		}
+		$this->dataStore->set($item->getName(), [$item->getId(), $item->getMeta(), $item->getLore(), $enchantments, (new LittleEndianNbtSerializer())->write(new TreeRoot($item->getCustomBlockData())), $item->getCanPlaceOn(), $item->getCanDestroy(), $item->getBlock()->getId(), $item->getBlock()->getMeta()]);
 		$sender->sendMessage(TextFormat::GREEN.'New Item "'.TextFormat::clean($item->getName()).'" is now available for use with /give');
 		return true;
 	}
-
 }
