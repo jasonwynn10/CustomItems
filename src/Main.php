@@ -24,7 +24,6 @@ class Main extends PluginBase {
 
 	public function onEnable() : void {
 		$this->dataStore = new Config($this->getDataFolder().'items.json', Config::JSON);
-		$this->dataStore->enableJsonOption(JSON_PRETTY_PRINT);
 		foreach($this->dataStore->getAll() as $name => $data) {
 			try{
 				$item = $data[2] ?
