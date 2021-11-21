@@ -51,6 +51,8 @@ class Main extends PluginBase {
 		StringToItemParser::getInstance()->register(TextFormat::clean($item->getName()), fn() => $item);
 
 		$this->dataStore->set($item->getName(), [$item->getId(), $item->getMeta(), $item->getLore(), $item->getEnchantments(), (new LittleEndianNbtSerializer())->write(new TreeRoot($item->getCustomBlockData())), $item->getCanPlaceOn(), $item->getCanDestroy(), $item->getBlock()->getId(), $item->getBlock()->getMeta()]);
+		$sender->sendMessage(TextFormat::GREEN.'New Item "'.TextFormat::clean($item->getName()).'" is now available for use with /give');
+		return true;
 	}
 
 }
