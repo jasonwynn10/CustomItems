@@ -1,0 +1,15 @@
+name: CustomItems
+main: jasonwynn10\customitems\Main
+src-namespace-prefix: jasonwynn10\customitems
+version: 0.1.0
+api: [4.0.0]
+load: POSTWORLD
+author: jasonwynn10
+description: A plugin to create items with constant attributes easily during runtime
+permissions:
+  CustomItems.command:
+    default: op
+commands:
+  addcustomItem:
+    permission: CustomItems.command
+    description: Registers a new custom item for use anywhere
